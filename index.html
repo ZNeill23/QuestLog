@@ -22,6 +22,15 @@
             autocomplete="off"
             maxlength="80"
           />
+
+          <select id="categorySelect" aria-label="Select category">
+            <option value="General">General</option>
+            <option value="School">School</option>
+            <option value="Work">Work</option>
+            <option value="Gaming">Gaming</option>
+            <option value="Personal">Personal</option>
+          </select>
+
           <button type="submit">Add</button>
         </form>
 
@@ -38,9 +47,20 @@
             </button>
           </div>
 
-          <button id="clearDoneBtn" class="danger" type="button">
-            Clear Done
-          </button>
+          <div class="rightControls">
+            <select id="categoryFilter" aria-label="Filter by category">
+              <option value="all">All Categories</option>
+              <option value="General">General</option>
+              <option value="School">School</option>
+              <option value="Work">Work</option>
+              <option value="Gaming">Gaming</option>
+              <option value="Personal">Personal</option>
+            </select>
+
+            <button id="clearDoneBtn" class="danger" type="button">
+              Clear Done
+            </button>
+          </div>
         </section>
 
         <ul id="questList" class="list" aria-label="Quest list"></ul>
