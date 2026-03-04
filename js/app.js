@@ -10,6 +10,7 @@ const filterButtons = document.querySelectorAll(".filter");
 
 const categorySelect = document.getElementById("categorySelect");
 const categoryFilter = document.getElementById("categoryFilter");
+const searchInput = document.getElementById("searchInput");
 
 const STORAGE_KEY = "questlog.v2";
 
@@ -18,6 +19,7 @@ const CATEGORIES = ["General", "School", "Work", "Gaming", "Personal"];
 let quests = loadQuests(); // [{ id, text, done, category }]
 let currentFilter = "all";
 let currentCategory = "all";
+let searchQuery = "";
 
 let editingId = null;
 
@@ -56,6 +58,12 @@ filterButtons.forEach((btn) => {
 
 categoryFilter.addEventListener("change", () => {
   currentCategory = categoryFilter.value;
+  editingId = null;
+  render();
+});
+
+searchInput.addEventListener("input", () => {
+  searchQuery = searchInput.value.trim().toLowerCase();
   editingId = null;
   render();
 });
@@ -148,8 +156,15 @@ function matchesStatus(q) {
   return true;
 }
 
+function matchesSearch(q) {
+  if (!searchQuery) return true;
+  return q.text.toLowerCase().includes(searchQuery);
+}
+
 function getVisibleQuests() {
-  return quests.filter((q) => matchesStatus(q) && matchesCategory(q));
+  return quests.filter(
+    (q) => matchesStatus(q) && matchesCategory(q) && matchesSearch(q),
+  );
 }
 
 // -------------------
@@ -233,10 +248,10 @@ function makeQuestElement(q) {
   del.className = "delete";
   del.setAttribute("aria-label", "Delete quest");
   del.innerHTML = `
-<svg class="trashIcon" viewBox="0 0 24 24" aria-hidden="true">
-  <path fill="currentColor" d="M9 3h6l1 2h5v2H3V5h5l1-2zm1 6h2v10h-2V9zm4 0h2v10h-2V9zM6 7h12l-1 14H7L6 7z"/>
-</svg>
-`;
+    <svg class="trashIcon" viewBox="0 0 24 24" aria-hidden="true">
+    <path fill="currentColor" d="M9 3h6l1 2h5v2H3V5h5l1-2zm1 6h2v10h-2V9zm4 0h2v10h-2V9zM6 7h12l-1 14H7L6 7z"/>
+    </svg>
+    `;
   del.addEventListener("click", () => deleteQuest(q.id));
 
   li.append(check, middle, del);
@@ -312,4 +327,5 @@ function setActiveFilterButton(filter) {
 // Initial paint
 setActiveFilterButton(currentFilter);
 categoryFilter.value = currentCategory;
+searchInput.value = "";
 render();

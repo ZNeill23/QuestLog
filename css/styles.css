@@ -21,7 +21,7 @@ body {
 
 .app {
   width: 100%;
-  max-width: 620px;
+  max-width: 900px;
 }
 
 .header h1 {
@@ -251,6 +251,21 @@ select:focus {
   user-select: none;
 }
 
+#searchInput {
+  width: 260px;
+  min-width: 220px;
+  padding: 12px 12px;
+  border-radius: 12px;
+  border: 1px solid #2a2f55;
+  background: #101327;
+  color: #e9ecff;
+  outline: none;
+}
+
+#searchInput:focus {
+  border-color: #6b7cff;
+}
+
 @media (max-width: 560px) {
   .form {
     grid-template-columns: 1fr;
@@ -259,5 +274,9 @@ select:focus {
   .rightControls {
     width: 100%;
     justify-content: space-between;
+  }
+
+  #searchInput {
+    width: 100%;
   }
 }
