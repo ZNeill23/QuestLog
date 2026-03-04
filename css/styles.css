@@ -162,3 +162,24 @@ button:hover {
   color: #b8bde6;
   font-size: 0.95rem;
 }
+
+.item.editing {
+  border-color: #6b7cff;
+}
+
+.editInput {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid #2a2f55;
+  background: #0f1220;
+  color: #e9ecff;
+  outline: none;
+}
+
+.editHint {
+  grid-column: 2 / 4;
+  color: #b8bde6;
+  font-size: 0.85rem;
+  margin-top: 6px;
+}

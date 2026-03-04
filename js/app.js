@@ -13,6 +13,8 @@ const STORAGE_KEY = "questlog.v1";
 let quests = loadQuests(); // [{ id, text, done }]
 let currentFilter = "all";
 
+let editingId = null;
+
 // -------------------
 // INPUT
 // -------------------
@@ -28,15 +30,18 @@ questForm.addEventListener("submit", (e) => {
 });
 
 clearDoneBtn.addEventListener("click", () => {
-  quests = quests.filter(q => !q.done);
+  quests = quests.filter((q) => !q.done);
   saveQuests();
   render();
 });
 
-filterButtons.forEach(btn => {
+filterButtons.forEach((btn) => {
   btn.addEventListener("click", () => {
     currentFilter = btn.dataset.filter;
     setActiveFilterButton(currentFilter);
+
+    editingId = null;
+
     render();
   });
 });
@@ -48,7 +53,7 @@ function addQuest(text) {
   const quest = {
     id: crypto.randomUUID(),
     text,
-    done: false
+    done: false,
   };
 
   quests.unshift(quest);
@@ -57,8 +62,10 @@ function addQuest(text) {
 }
 
 function toggleQuest(id) {
-  const q = quests.find(q => q.id === id);
+  const q = quests.find((q) => q.id === id);
   if (!q) return;
+
+  if (editingId === id) return;
 
   q.done = !q.done;
   saveQuests();
@@ -66,14 +73,53 @@ function toggleQuest(id) {
 }
 
 function deleteQuest(id) {
-  quests = quests.filter(q => q.id !== id);
+  quests = quests.filter((q) => q.id !== id);
+
+  if (editingId === id) editingId = null;
+
+  saveQuests();
+  render();
+}
+
+function startEditing(id) {
+  const q = quests.find((q) => q.id === id);
+  if (!q) return;
+
+  editingId = id;
+  render();
+
+  const input = document.querySelector(`li[data-id="${id}"] .editInput`);
+  if (input) {
+    input.focus();
+    input.select();
+  }
+}
+
+function cancelEditing() {
+  editingId = null;
+  render();
+}
+
+function saveEditing(id, newText) {
+  const q = quests.find((q) => q.id === id);
+  if (!q) return;
+
+  const cleaned = newText.trim();
+
+  if (!cleaned) {
+    cancelEditing();
+    return;
+  }
+
+  q.text = cleaned;
+  editingId = null;
   saveQuests();
   render();
 }
 
 function getVisibleQuests() {
-  if (currentFilter === "active") return quests.filter(q => !q.done);
-  if (currentFilter === "done") return quests.filter(q => q.done);
+  if (currentFilter === "active") return quests.filter((q) => !q.done);
+  if (currentFilter === "done") return quests.filter((q) => q.done);
   return quests;
 }
 
@@ -84,17 +130,23 @@ function render() {
   const visible = getVisibleQuests();
 
   questList.innerHTML = "";
-  visible.forEach(q => questList.appendChild(makeQuestElement(q)));
+  visible.forEach((q) => questList.appendChild(makeQuestElement(q)));
 
   const total = quests.length;
-  const doneCount = quests.filter(q => q.done).length;
+  const doneCount = quests.filter((q) => q.done).length;
 
   countText.textContent = `${total} quest${total === 1 ? "" : "s"} • ${doneCount} done`;
 }
 
 function makeQuestElement(q) {
   const li = document.createElement("li");
-  li.className = "item" + (q.done ? " done" : "");
+  const isEditing = editingId === q.id;
+
+  li.className =
+    "item" +
+    (q.done ? " done" : "") +
+    (isEditing ? " editing" : "");
+
   li.dataset.id = q.id;
 
   const check = document.createElement("button");
@@ -104,9 +156,37 @@ function makeQuestElement(q) {
   check.textContent = q.done ? "✓" : "";
   check.addEventListener("click", () => toggleQuest(q.id));
 
-  const text = document.createElement("div");
-  text.className = "text";
-  text.textContent = q.text;
+  let middle;
+
+  if (!isEditing) {
+    const text = document.createElement("div");
+    text.className = "text";
+    text.textContent = q.text;
+
+    text.addEventListener("dblclick", () => startEditing(q.id));
+
+    middle = text;
+  } else {
+    const input = document.createElement("input");
+    input.className = "editInput";
+    input.type = "text";
+    input.value = q.text;
+    input.maxLength = 80;
+
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        saveEditing(q.id, input.value);
+      } else if (e.key === "Escape") {
+        cancelEditing();
+      }
+    });
+
+    input.addEventListener("blur", () => {
+      saveEditing(q.id, input.value);
+    });
+
+    middle = input;
+  }
 
   const del = document.createElement("button");
   del.type = "button";
@@ -115,7 +195,15 @@ function makeQuestElement(q) {
   del.textContent = "🗑️";
   del.addEventListener("click", () => deleteQuest(q.id));
 
-  li.append(check, text, del);
+  li.append(check, middle, del);
+
+  if (isEditing) {
+    const hint = document.createElement("div");
+    hint.className = "editHint";
+    hint.textContent = "Enter = save • Esc = cancel • click outside = save";
+    li.appendChild(hint);
+  }
+
   return li;
 }
 
@@ -138,7 +226,7 @@ function loadQuests() {
 }
 
 function setActiveFilterButton(filter) {
-  filterButtons.forEach(btn => {
+  filterButtons.forEach((btn) => {
     btn.classList.toggle("active", btn.dataset.filter === filter);
   });
 }
